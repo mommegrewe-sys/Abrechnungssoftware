@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchCustomers, createCustomer, deleteCustomer } from "../api/customers";
-import type { Customer, NewCustomer } from "../types/customer";
+import { fetchCustomers, deleteCustomer } from "../api/customers";
+import type { Customer } from "../types/customer";
 
 export default function CustomersPage() {
   const [items, setItems] = useState<Customer[]>([]);
@@ -14,11 +14,6 @@ export default function CustomersPage() {
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "Unknown error"))
       .finally(() => setLoading(false));
   }, []);
-
-  async function handleAdd(input: NewCustomer) {
-    const created = await createCustomer(input);
-    setItems((prev) => [created, ...prev]);
-  }
 
   async function handleDelete(id: number) {
     await deleteCustomer(id);
