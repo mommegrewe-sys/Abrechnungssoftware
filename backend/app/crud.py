@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app import models, schemas
+from app from app from app import models, schemas
 
 def get_partners(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Partner).offset(skip).limit(limit).all()
