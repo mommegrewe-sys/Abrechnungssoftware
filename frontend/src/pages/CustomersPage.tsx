@@ -1,104 +1,44 @@
-import React, { useEffect, useState } from "react";
-import {
-  getCustomers,
-  createCustomer,
-  updateCustomer,
-  deleteCustomer,
-} from "../api/customers";
-import CustomerTable from "../components/CustomerTable";
-import CustomerForm from "../components/CustomerForm";
+import { useEffect, useState } from "react";
+import { fetchCustomers, deleteCustomer } from "../api/customers";
+import type { Customer } from "../types/customer";
 
-const CustomersPage: React.FC = () => {
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [editing, setEditing] = useState<any | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [filterActive, setFilterActive] = useState(false);
-
-  const loadCustomers = async () => {
-    const res = await getCustomers();
-    setCustomers(res.data);
-  };
+export default function CustomersPage() {
+  const [items, setItems] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCustomers();
+    setLoading(true);
+    fetchCustomers()
+      .then(setItems)
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : "Unknown error"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = async (data: any) => {
-    if (editing) {
-      await updateCustomer(editing.id, data);
-    } else {
-      await createCustomer(data);
-    }
-    setEditing(null);
-    setShowForm(false);
-    loadCustomers();
-  };
-
-  const handleDelete = async (id: number) => {
+  async function handleDelete(id: number) {
     await deleteCustomer(id);
-    loadCustomers();
-  };
+    setItems((prev) => prev.filter((c) => c.id !== id));
+  }
 
-  const filtered = filterActive
-    ? customers.filter((c) => c.active)
-    : customers;
+  if (loading) return <div>Loading…</div>;
+  if (error) return <div>Failed: {error}</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 py-10 px-4">
-      {/* Header */}
-      <header className="max-w-5xl mx-auto mb-8 text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">
-          Kundenverwaltung
-        </h1>
-        <p className="text-gray-600">
-          Erstellen, bearbeiten und verwalten Sie Ihre Kunden einfach.
-        </p>
-      </header>
-
-      {/* Hauptbereich */}
-      <main className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-        <div className="flex justify-between items-center mb-6">
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
-            >
-              + Neuer Kunde
+    <div className="p-4">
+      <h1 className="text-xl font-semibold mb-4">Customers</h1>
+      <ul className="space-y-2">
+        {items.map((c) => (
+          <li key={c.id} className="border rounded p-3 flex justify-between">
+            <div>
+              <div className="font-medium">{c.name}</div>
+              {c.email_contact && <div className="text-sm opacity-70">{c.email_contact}</div>}
+            </div>
+            <button className="text-red-600" onClick={() => handleDelete(c.id)}>
+              Delete
             </button>
-          )}
-          <label className="flex items-center space-x-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={filterActive}
-              onChange={(e) => setFilterActive(e.target.checked)}
-              className="accent-blue-600"
-            />
-            <span>Nur aktive Kunden anzeigen</span>
-          </label>
-        </div>
-
-        {showForm && (
-          <CustomerForm
-            initialData={editing}
-            onSubmit={handleSave}
-            onCancel={() => {
-              setEditing(null);
-              setShowForm(false);
-            }}
-          />
-        )}
-
-        <CustomerTable
-          customers={filtered}
-          onEdit={(c) => {
-            setEditing(c);
-            setShowForm(true);
-          }}
-          onDelete={handleDelete}
-        />
-      </main>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
-
-export default CustomersPage;
+}

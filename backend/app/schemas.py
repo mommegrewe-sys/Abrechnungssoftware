@@ -18,5 +18,5 @@ class Partner(PartnerBase):
     id: int
     created_at: Optional[date] = None
 
-class Config:
-    from_attributes = True
+    class Config:
+        from_attributes = True

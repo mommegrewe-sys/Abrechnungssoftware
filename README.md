@@ -101,3 +101,4 @@ Funktionen:
 
 **Autor:** Momme Grewe  
 **Technischer Mentor:** ChatGPT (Full-Stack-Entwicklungsassistenz)
+- UI WIP: Customers table
